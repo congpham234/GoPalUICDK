@@ -10,21 +10,51 @@ on:
 env:
   RUN_ID: ${{ github.run_id }}
   STAGE: alpha
+  REPO_NAME: GoPalUICDK
+  WEBSITE_BUCKET: go-pal-website-bucket
   AWS_DEFAULT_REGION: us-west-2
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  COMMIT_MESSAGE: ${{ github.event.client_payload.COMMIT_MESSAGE || format('GoPalUICDK - {0}', github.event.head_commit.message) }}
+  COMMIT_MESSAGE: ${{ github.event.client_payload.commit_message || format('GoPalUICDK - {0}', github.event.head_commit.message) }}
 
 concurrency:
   group: gopal-deployment-group
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy-code:
+  build-and-deploy-cdk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout GoPalUI Repo repository
+      - name: Checkout CDK Repo repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Install AWS CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Running bootstrap
+        run: cdk bootstrap
+
+      - name: Deploy CDK stack
+        run: cdk synth && cdk deploy --require-approval never "*"
+
+  build-and-deploy-code:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy-cdk
+
+    steps:
+      - name: Checkout Code Repo repository
         uses: actions/checkout@v2
         with:
           repository: congpham234/GoPalUI
@@ -41,33 +71,8 @@ jobs:
       - name: Build Code
         run: npm run build
 
-  build-and-deploy-cdk:
-    runs-on: ubuntu-latest
-    needs: build-and-deploy-code
-
-    steps:
-      - name: Checkout GoPalUICDK Repo repository
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-
-      - name: Install AWS CDK CLI
-        run: npm install -g aws-cdk
-        
-      - name: Running bootstrap
-        run: cdk bootstrap
-
-      - name: Deploy CDK stack
-        run: cdk synth && cdk deploy --require-approval never "*"
+      - name: Upload new version to S3
+        run: aws s3 sync ./build s3://${{ env.WEBSITE_BUCKET }}/
 
   send-discord-notification:
     runs-on: ubuntu-latest
@@ -78,7 +83,7 @@ jobs:
         id: COMMIT_MESSAGE_ID
         uses: frabert/replace-string-action@v2
         with:
-          pattern: '/"/g'
+          pattern: '["]'
           string: ${{ env.COMMIT_MESSAGE }}
           replace-with: ''
 
@@ -93,6 +98,6 @@ jobs:
           title: "${{ env.COMMIT_MESSAGE }}"
           image: ${{ contains(needs.*.result, 'failure') && secrets.EMBED_IMAGE_FAILURE || secrets.EMBED_IMAGE_SUCCESS }}
           color: ${{ contains(needs.*.result, 'failure') && '0xFF0000' || '0x00FF00' }}
-          url: "https://github.com/congpham234/GoPalUICDK"
+          url: "https://github.com/congpham234/${{ env.REPO_NAME }}"
           username: ${{ contains(needs.*.result, 'failure') && 'Ur MOM' || 'Kilala' }}
           avatar_url: ${{ contains(needs.*.result, 'failure') && secrets.EMBED_IMAGE_FAILURE || secrets.EMBED_IMAGE_SUCCESS }}
