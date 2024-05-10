@@ -15,7 +15,7 @@ env:
   AWS_DEFAULT_REGION: us-west-2
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  COMMIT_MESSAGE: ${{ github.event.client_payload.commit_message || format('GoPalUICDK - {0}', github.event.head_commit.message) }}
+  COMMIT_MESSAGE: ${{ github.event.client_payload.COMMIT_MESSAGE || format('GoPalUICDK - {0}', github.event.head_commit.message) }}
 
 concurrency:
   group: gopal-deployment-group
@@ -72,7 +72,7 @@ jobs:
         run: npm run build
 
       - name: Upload new version to S3
-        run: aws s3 sync ./build s3://${{ env.WEBSITE_BUCKET }}/
+        run: aws s3 sync ./build s3://${{ env.WEBSITE_BUCKET }}/ --delete
 
   send-discord-notification:
     runs-on: ubuntu-latest

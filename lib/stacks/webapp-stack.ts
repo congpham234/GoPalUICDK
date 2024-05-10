@@ -1,5 +1,5 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
-import { CloudFrontWebDistribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
+import { CloudFrontWebDistribution, OriginAccessIdentity, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { CanonicalUserPrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -38,7 +38,10 @@ export class WebAppStack extends Stack {
           s3BucketSource: this.websiteBucket,
           originAccessIdentity: originAccessIdentity,
         },
-        behaviors: [{ isDefaultBehavior: true }],
+        behaviors: [{
+          isDefaultBehavior: true,
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        }],
       }],
     });
 
