@@ -1,0 +1,37 @@
+{
+  "name": "gopaluicdk",
+  "version": "0.1.0",
+  "bin": {
+    "gopaluicdk": "bin/gopaluicdk.js"
+  },
+  "scripts": {
+    "build": "npm run format && tsc && npm run lint && cdk synth",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "lint": "eslint .",
+    "format": "npm run lint -- --fix",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.14",
+    "@types/prettier": "^2.6.0",
+    "aws-cdk": "^2.126.0",
+    "esbuild": "0.19.11",
+    "eslint": "^8.56.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-typescript": "^3.0.0",
+    "eslint-plugin-check-file": "^2.6.2",
+    "husky": "^9.0.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^6.0.0",
+    "aws-cdk-lib": "^2.47.0",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  }
+}
