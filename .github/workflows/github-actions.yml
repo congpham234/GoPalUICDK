@@ -71,9 +71,6 @@ jobs:
       - name: Build Code
         run: npm run build
 
-      - name: Copy .env to build folder
-        run: cp .env build/
-
       - name: Upload new version to S3
         run: aws s3 sync ./build s3://${{ env.WEBSITE_BUCKET }}/ --delete
 
