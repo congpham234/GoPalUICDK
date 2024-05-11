@@ -19,7 +19,7 @@ env:
 
 concurrency:
   group: gopal-deployment-group
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy-cdk:
