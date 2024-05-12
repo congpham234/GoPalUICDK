@@ -12,6 +12,7 @@ env:
   STAGE: alpha
   REPO_NAME: GoPalUICDK
   WEBSITE_BUCKET: go-pal-website-bucket
+  CONFIG_BUCKET: go-pal-config-bucket
   AWS_DEFAULT_REGION: us-west-2
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -68,13 +69,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Get the environment file
+        run: aws s3 cp s3://${{ env.CONFIG_BUCKET }}/.env ./.env
+
       - name: Build Code
         run: npm run build
 
       - name: Upload new version to S3
         run: aws s3 sync ./build s3://${{ env.WEBSITE_BUCKET }}/ --delete
 
-      - name: clear CloudFront Cache
+      - name: Clear CloudFront Cache
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CF_DISTRIBUTION_ID }} --paths "/*"
 
   send-discord-notification:
