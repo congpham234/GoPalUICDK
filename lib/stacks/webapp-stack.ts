@@ -1,15 +1,22 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { CloudFrontWebDistribution, OriginAccessIdentity, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { CanonicalUserPrincipal, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 export class WebAppStack extends Stack {
   readonly websiteBucket: Bucket;
+  readonly configBucket: Bucket;
   readonly distribution: CloudFrontWebDistribution;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    this.configBucket = new Bucket(this, 'GoPalConfigBucket', {
+      bucketName: 'go-pal-config-bucket',
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+    });
 
     // Create the S3 bucket
     this.websiteBucket = new Bucket(this, 'GoPalWebsiteBucket', {
